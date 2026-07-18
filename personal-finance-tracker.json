@@ -1,0 +1,982 @@
+{
+  "name": "Personal Finance Tracker Fix",
+  "nodes": [
+    {
+      "parameters": {
+        "updates": [
+          "message"
+        ],
+        "additionalFields": {}
+      },
+      "id": "7784e323-0962-4025-8976-83d68ebe6493",
+      "name": "Telegram Trigger",
+      "type": "n8n-nodes-base.telegramTrigger",
+      "typeVersion": 1.1,
+      "position": [
+        -736,
+        288
+      ],
+      "webhookId": "finance-tracker-v2",
+      "credentials": {
+        "telegramApi": {
+          "id": "JHh9NvKaeM1tgseY",
+          "name": "Telegram account 293"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "url": "=https://api.telegram.org/file/bot{{ $env.TELEGRAM_BOT_TOKEN }}/{{ $json.result.file_path }}",
+        "options": {
+          "response": {
+            "response": {
+              "responseFormat": "file"
+            }
+          }
+        }
+      },
+      "id": "32b9e6d9-2a9b-4371-a48a-044ef2cb10f7",
+      "name": "Download Audio",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        -112,
+        528
+      ],
+      "notes": "Replace {{TELEGRAM_BOT_TOKEN}} with your Telegram bot token"
+    },
+    {
+      "parameters": {
+        "jsCode": "const item = items[0];\n\n// Approach compatible with n8n 2.14.x\nconst binaryProperty = item.binary['data'];\n\nitem.binary['data'] = {\n  ...binaryProperty,\n  mimeType: 'audio/ogg',\n  fileName: 'audio.ogg',\n  fileExtension: 'ogg',\n};\n\nreturn [item];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        80,
+        528
+      ],
+      "id": "698f296e-ff62-4273-9c85-d56a2b3c665d",
+      "name": "Code in JavaScript"
+    },
+    {
+      "parameters": {
+        "rules": {
+          "values": [
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 1
+                },
+                "conditions": [
+                  {
+                    "leftValue": "={{ $json.message.photo }}",
+                    "rightValue": "",
+                    "operator": {
+                      "type": "array",
+                      "operation": "notEmpty",
+                      "singleValue": true
+                    },
+                    "id": "d805d179-8e8c-4dc4-bcce-b0be710254dc"
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "photo"
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 1
+                },
+                "conditions": [
+                  {
+                    "leftValue": "={{ $json.message.document }}",
+                    "rightValue": "",
+                    "operator": {
+                      "type": "object",
+                      "operation": "notEmpty",
+                      "singleValue": true
+                    },
+                    "id": "aa9acfe2-01e7-4a79-bbc8-abdd464b1104"
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "document"
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 1
+                },
+                "conditions": [
+                  {
+                    "leftValue": "={{ $json.message.text }}",
+                    "rightValue": "",
+                    "operator": {
+                      "type": "string",
+                      "operation": "notEmpty",
+                      "singleValue": true
+                    },
+                    "id": "0a9acfb2-63b9-4311-b5bf-22d25f3c3bac"
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "text"
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 1
+                },
+                "conditions": [
+                  {
+                    "leftValue": "={{ $json.message.voice }}",
+                    "rightValue": "",
+                    "operator": {
+                      "type": "object",
+                      "operation": "notEmpty",
+                      "singleValue": true
+                    },
+                    "id": "eda655eb-2331-4244-b2c3-42f23e8ee9dc"
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "voice"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "1277b9dd-12c7-4987-ac59-bece9a8fdffe",
+      "name": "Input Type Router",
+      "type": "n8n-nodes-base.switch",
+      "typeVersion": 3,
+      "position": [
+        -544,
+        256
+      ]
+    },
+    {
+      "parameters": {
+        "url": "=https://api.telegram.org/bot{{ $env.TELEGRAM_BOT_TOKEN }}/getFile?file_id={{ $json.message.photo[$json.message.photo.length - 1].file_id }}",
+        "options": {}
+      },
+      "id": "834b515e-5cf1-49c7-b01b-2537cff5443b",
+      "name": "Get File Path (Image)",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        -304,
+        16
+      ],
+      "notes": "Replace {{TELEGRAM_BOT_TOKEN}} with your Telegram bot token"
+    },
+    {
+      "parameters": {
+        "jsCode": "const filePath = $input.first().json.result.file_path;\nconst token = $env.TELEGRAM_BOT_TOKEN;\nconst trigger = $('Telegram Trigger').first().json;\n\nconst imageUrl = `https://api.telegram.org/file/bot${token}/${filePath}`;\n\n// Download pakai helper n8n (bukan fetch)\nconst response = await this.helpers.httpRequest({\n  method: 'GET',\n  url: imageUrl,\n  encoding: 'arraybuffer',\n  returnFullResponse: false\n});\n\nconst base64 = Buffer.from(response).toString('base64');\n\nconst ext = filePath.split('.').pop().toLowerCase();\nconst mimeMap = { jpg: 'image/jpeg', jpeg: 'image/jpeg', png: 'image/png', webp: 'image/webp' };\nconst mimeType = mimeMap[ext] || 'image/jpeg';\n\nreturn [{\n  json: {\n    chat_id: trigger.message.chat.id,\n    input_date: new Date(trigger.message.date * 1000).toISOString().split('T')[0],\n    input_type: 'photo',\n    text_content: '',\n    image_base64: base64,\n    image_mime: mimeType,\n    has_image: true\n  }\n}];"
+      },
+      "id": "31b5ac13-f31c-4850-b94e-1156c428b7d6",
+      "name": "Build Image URL",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -80,
+        16
+      ],
+      "notes": "Replace TELEGRAM_BOT_TOKEN on line 2 with your bot token"
+    },
+    {
+      "parameters": {
+        "url": "=https://api.telegram.org/bot{{ $env.TELEGRAM_BOT_TOKEN }}/getFile?file_id={{ $json.message.document.file_id }}",
+        "options": {}
+      },
+      "id": "558d8464-1d3f-403f-a927-122231444a26",
+      "name": "Get File Path (Document)",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        -304,
+        208
+      ],
+      "notes": "Replace {{TELEGRAM_BOT_TOKEN}} with your Telegram bot token"
+    },
+    {
+      "parameters": {
+        "jsCode": "const filePath = $input.first().json.result.file_path;\nconst token = $env.TELEGRAM_BOT_TOKEN;\n\n// Download PDF dan convert ke base64\nconst imageUrl = `https://api.telegram.org/file/bot${token}/${filePath}`;\n\nconst response = await this.helpers.httpRequest({\n  method: 'GET',\n  url: imageUrl,\n  encoding: 'arraybuffer',  // Penting! Sama seperti yang kita pakai di receipt image\n  returnFullResponse: false,\n});\n\nconst base64 = Buffer.from(response).toString('base64');\n\nreturn [{\n  json: {\n    base64Data: base64,\n    mimeType: 'application/pdf',\n    filePath: filePath\n  }\n}];"
+      },
+      "id": "5ea58c8d-c5f0-4611-95b2-d354bab75fd9",
+      "name": "Build Document URL",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -80,
+        208
+      ],
+      "notes": "Replace TELEGRAM_BOT_TOKEN on line 2 with your bot token"
+    },
+    {
+      "parameters": {
+        "jsCode": "const trigger = $('Telegram Trigger').first().json;\nconst chatId  = trigger.message.chat.id;\nconst msgDate = new Date(trigger.message.date * 1000).toISOString().split('T')[0];\n\nreturn [{\n  json: {\n    chat_id:       chatId,\n    input_date: msgDate,\n    input_type:    'text',\n    text_content:  trigger.message.text || '',\n    image_url:     null,\n    has_image:     false\n  }\n}];"
+      },
+      "id": "e0979fde-6ff0-4b56-9e1d-db12498e3765",
+      "name": "Prepare Text Input",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -304,
+        368
+      ]
+    },
+    {
+      "parameters": {
+        "url": "=https://api.telegram.org/bot{{ $env.TELEGRAM_BOT_TOKEN }}/getFile?file_id={{ $json.message.voice.file_id }}",
+        "options": {}
+      },
+      "id": "c525ab31-e1a7-4bb6-9d0d-8b2904517572",
+      "name": "Get File Path (Voice)",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        -304,
+        528
+      ],
+      "notes": "Replace {{TELEGRAM_BOT_TOKEN}} with your Telegram bot token"
+    },
+    {
+      "parameters": {
+        "jsCode": "const trigger = $('Telegram Trigger').first().json;\nconst chatId  = trigger.message.chat.id;\nconst msgDate = new Date(trigger.message.date * 1000).toISOString().split('T')[0];\n\n// Input from Whisper (voice)\nconst textFromWhisper = $input.first().json.text || '';\n\nreturn [{\n  json: {\n    chat_id:       chatId,\n    input_date: msgDate,\n    input_type:    'voice_to_text',\n    text_content:  textFromWhisper,\n    image_url:     null,\n    has_image:     false\n  }\n}];"
+      },
+      "id": "cc3d90bd-8749-49f9-a1e1-06cf716749a0",
+      "name": "Prepare Transcribed Text",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        464,
+        528
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "const item = $input.first().json;\n\n// Check if there is PDF data from Build Document URL\nlet pdfBase64 = null;\nlet pdfMime = null;\n\ntry {\n  const docData = $('Build Document URL').first().json;\n  if (docData && docData.base64Data) {\n    pdfBase64 = docData.base64Data;\n    pdfMime = docData.mimeType || 'application/pdf';\n  }\n} catch(e) {\n  // No document found, that's fine\n}\n\nreturn [{\n  json: {\n    chat_id:      item.chat_id,\n    input_date:   item.input_date,\n    input_type:   item.input_type,\n    text_content: item.text_content || '',\n    image_url:    item.image_url || null,\n    // If a PDF exists, use it. Otherwise use the photo\n    image_base64: pdfBase64 || item.image_base64 || null,\n    image_mime:   pdfMime || item.image_mime || 'image/jpeg',\n    has_image:    !!(pdfBase64 || item.image_base64),\n  }\n}];"
+      },
+      "id": "f09ffe8f-7bbc-4432-aad2-1ebccdaee74f",
+      "name": "Merge All Inputs",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        656,
+        208
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "const item = $input.first().json;\n\n// Concise prompt so the output isn't truncated\nconst instruksi = \"You are a financial assistant. Extract the data from the receipt/invoice/text.\\n\" +\n\"Detect the original currency of the transaction (IDR, USD, SGD, MYR, EUR, JPY, GBP, AUD, or any other currency) and convert the total to US Dollars (USD) using standard current exchange rates. If the original currency is already USD, keep the amount as is.\\n\" +\n\"Default date if none is found: \" + item.input_date + \"\\n\" +\n\"Category: Food & Beverage / Transportation / Investment / Charity & Donation / Bills / Shopping / Health / Entertainment / Education / Others\\n\" +\n\"If there are multiple items, MERGE them into 1 entry per category (do not split per item).\\n\" +\n\"Write the merchant name, item summary, and confirmation message in professional English.\\n\\n\" +\n\"INPUT: \" + (item.text_content || \"see image\") + \"\\n\\n\" +\n\"REPLY WITH JSON ONLY:\\n\" +\n\"{\\\"success\\\":true,\\\"entries\\\":[{\\\"date\\\":\\\"YYYY-MM-DD\\\",\\\"merchant\\\":\\\"name\\\",\\\"category\\\":\\\"category\\\",\\\"item\\\":\\\"item summary\\\",\\\"original_amount\\\":0,\\\"original_currency\\\":\\\"USD\\\",\\\"amount_usd\\\":0,\\\"notes\\\":\\\"\\\"}],\\\"total_usd\\\":0,\\\"confirmation_message\\\":\\\"✅ $X for Category at Merchant on Y\\\"}\\n\" +\n\"If this is not financial information: {\\\"success\\\":false,\\\"confirmation_message\\\":\\\"❌ No financial information found.\\\"}\";\n\nconst parts = [{ text: instruksi }];\n\nif (item.has_image && item.image_base64) {\n  parts.push({\n    inline_data: {\n      mime_type: item.image_mime || \"image/jpeg\",\n      data: item.image_base64\n    }\n  });\n}\n\nconst requestBody = {\n  contents: [{ parts: parts }],\n  generationConfig: {\n    temperature: 0.1,\n    maxOutputTokens: 8192\n  }\n};\n\nreturn [{\n  json: {\n    chat_id: item.chat_id,\n    input_date: item.input_date,\n    input_type: item.input_type,\n    gemini_body: JSON.stringify(requestBody)\n  }\n}];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        880,
+        208
+      ],
+      "id": "5381915a-e1a1-4a7c-a2b7-bd2980fc770b",
+      "name": "Build Gemini Prompt"
+    },
+    {
+      "parameters": {
+        "jsCode": "const trigger  = $('Telegram Trigger').first().json;\nconst chatId   = trigger.message.chat.id;\nconst prepared = $('Build Gemini Prompt').first().json;\n\nlet rawText = '';\ntry {\n  rawText = $input.first().json.candidates[0].content.parts[0].text || '';\n} catch(e) {\n  return [{ json: {\n    success: false,\n    message: '❌ Gemini did not respond. Please try sending it again.',\n    chat_id: chatId\n  }}];\n}\n\n// Remove markdown code fences\nconst cleaned = rawText\n  .replace(/```json\\n?/g, '')\n  .replace(/```\\n?/g, '')\n  .trim();\n\ntry {\n  const parsed = JSON.parse(cleaned);\n\n  if (!parsed.success) {\n    return [{ json: {\n      success: false,\n      message: parsed.confirmation_message || '❌ Unable to process this input.',\n      chat_id: chatId\n    }}];\n  }\n\n  return parsed.entries.map(entry => ({\n    json: {\n      success:            true,\n      date:               entry.date               || prepared.input_date,\n      merchant:           entry.merchant            || 'Unknown merchant',\n      category:           entry.category            || 'Others',\n      item:               entry.item                || '-',\n      original_amount:    entry.original_amount      || 0,\n      original_currency:  entry.original_currency    || 'USD',\n      amount_usd:         entry.amount_usd           || 0,\n      notes:              entry.notes               || '',\n      total_usd:          parsed.total_usd           || 0,\n      confirmation_message: parsed.confirmation_message || '✅ Data recorded successfully.',\n      chat_id:            chatId\n    }\n  }));\n\n} catch(e) {\n  return [{ json: {\n    success: false,\n    message: '❌ Failed to read the AI response. Please try again.',\n    chat_id: chatId\n  }}];\n}"
+      },
+      "id": "728c7f1d-06b1-48ce-818b-28d1c19828a5",
+      "name": "Parse AI Response",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1296,
+        208
+      ]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 1
+          },
+          "conditions": [
+            {
+              "leftValue": "={{ $json.success }}",
+              "rightValue": true,
+              "operator": {
+                "type": "boolean",
+                "operation": "true",
+                "singleValue": true
+              },
+              "id": "df72fb4b-dc77-4545-b533-dcba5f183a42"
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "id": "5d1d1f9f-65b5-474d-a063-9d239711fcaf",
+      "name": "Success?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2,
+      "position": [
+        1472,
+        208
+      ]
+    },
+    {
+      "parameters": {
+        "chatId": "={{ $('Success?').item.json.chat_id }}",
+        "text": "={{ $('Success?').item.json.confirmation_message }}",
+        "additionalFields": {
+          "appendAttribution": false,
+          "parse_mode": "Markdown"
+        }
+      },
+      "id": "3be87e35-669a-47d9-a73a-41c02b837f59",
+      "name": "Telegram: Success Confirmation",
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [
+        1920,
+        64
+      ],
+      "webhookId": "2981e834-a1e5-4244-81fc-54548fefaf42",
+      "credentials": {
+        "telegramApi": {
+          "id": "CjqM22P792YKdJtO",
+          "name": "Telegram account 312"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "chatId": "={{ $json.chat_id }}",
+        "text": "={{ $json.message }}",
+        "additionalFields": {
+          "appendAttribution": false,
+          "parse_mode": "Markdown"
+        }
+      },
+      "id": "5c64b252-d481-49a6-8281-cb32868a3d2b",
+      "name": "Telegram: Error Message",
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [
+        1696,
+        368
+      ],
+      "webhookId": "d6efe086-7747-477f-8d34-c634b6183345",
+      "credentials": {
+        "telegramApi": {
+          "id": "CjqM22P792YKdJtO",
+          "name": "Telegram account 312"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "rule": {
+          "interval": [
+            {
+              "field": "cronExpression",
+              "expression": "0 7 1 * *"
+            }
+          ]
+        }
+      },
+      "id": "c6538078-370c-41c7-bb17-a200969bb64c",
+      "name": "Monthly Report Schedule",
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.2,
+      "position": [
+        -720,
+        736
+      ]
+    },
+    {
+      "parameters": {
+        "operation": "getAll",
+        "documentId": {
+          "__rl": true,
+          "value": "YOUR_SPREADSHEET_ID",
+          "mode": "id"
+        }
+      },
+      "id": "9ecda01e-4e1d-4feb-9cb7-d170f4a22d99",
+      "name": "Read Sheets Data",
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.4,
+      "position": [
+        -496,
+        736
+      ],
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "XHVoEvkw16nN8yjL",
+          "name": "Google Sheets account 479"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "const allRows = $input.all().map(i => i.json);\n\nconst now = new Date();\nconst lastMonth = new Date(now.getFullYear(), now.getMonth() - 1, 1);\nconst lastMonthStr = lastMonth.toISOString().slice(0,7);\n\nconst filtered = allRows.filter(r => r['Date'] && r['Date'].startsWith(lastMonthStr));\n\nconst monthNames = ['January','February','March','April','May','June','July','August','September','October','November','December'];\nconst monthName = monthNames[lastMonth.getMonth()];\n\nif (filtered.length === 0) {\n  return [{ json: {\n    report: `📊 *${monthName} ${lastMonth.getFullYear()} Report*\\n\\n_No transactions recorded this month._`,\n    chat_id: 'YOUR_CHAT_ID'\n  }}];\n}\n\nconst perCategory = {};\nlet totalAll = 0;\nfiltered.forEach(r => {\n  const cat = r['Category'] || 'Others';\n  const amt = parseFloat(r['Amount (USD)']) || 0;\n  perCategory[cat] = (perCategory[cat] || 0) + amt;\n  totalAll += amt;\n});\n\nconst sorted = Object.entries(perCategory).sort((a,b) => b[1]-a[1]);\n\nconst emoji = {\n  'Food & Beverage':'🍜','Transportation':'🚗','Investment':'📈',\n  'Charity & Donation':'🤲','Bills':'💡','Shopping':'🛍️',\n  'Health':'💊','Entertainment':'🎬','Education':'📚','Others':'📌'\n};\n\nlet text = `📊 *Financial Report — ${monthName} ${lastMonth.getFullYear()}*\\n`;\ntext += `━━━━━━━━━━━━━━━━━━\\n`;\nsorted.forEach(([cat, amt]) => {\n  const pct = Math.round(amt/totalAll*100);\n  text += `\\n${emoji[cat]||'📌'} *${cat}*\\n$${amt.toFixed(2)} (${pct}%)\\n`;\n});\ntext += `\\n━━━━━━━━━━━━━━━━━━`;\ntext += `\\n💰 *Total: $${totalAll.toFixed(2)}*`;\ntext += `\\n📝 ${filtered.length} transactions`;\n\nreturn [{ json: { report: text, chat_id: 'YOUR_CHAT_ID' } }];"
+      },
+      "id": "63ea6a46-a0b0-4e41-94d6-ca0a0520d955",
+      "name": "Calculate Monthly Report",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -272,
+        736
+      ],
+      "notes": "Replace YOUR_CHAT_ID with your Telegram chat ID"
+    },
+    {
+      "parameters": {
+        "chatId": "={{ $json.chat_id }}",
+        "text": "={{ $json.report }}",
+        "additionalFields": {
+          "appendAttribution": false,
+          "parse_mode": "Markdown"
+        }
+      },
+      "id": "b8c198b0-f681-4365-9d1c-451f76e650a4",
+      "name": "Telegram: Send Report",
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [
+        -48,
+        736
+      ],
+      "webhookId": "0522e665-e74b-4a19-adc0-7aa51ba44388",
+      "credentials": {
+        "telegramApi": {
+          "id": "CjqM22P792YKdJtO",
+          "name": "Telegram account 312"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://api.groq.com/openai/v1/audio/transcriptions",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "sendBody": true,
+        "contentType": "multipart-form-data",
+        "bodyParameters": {
+          "parameters": [
+            {
+              "name": "model",
+              "value": "whisper-large-v3"
+            },
+            {
+              "name": "language",
+              "value": "id"
+            },
+            {
+              "name": "response_format",
+              "value": "json"
+            },
+            {
+              "parameterType": "formBinaryData",
+              "name": "file",
+              "inputDataFieldName": "data"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "a4beee9c-d223-4d9e-ad01-1f38a9ac7aef",
+      "name": "Voice-to-Text Engine",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        272,
+        528
+      ],
+      "credentials": {
+        "httpHeaderAuth": {
+          "id": "8ESHF9NtaBtaOtW4",
+          "name": "Header Auth account 18"
+        }
+      },
+      "notes": "Credential: HTTP Header Auth — Name: Authorization, Value: Bearer YOUR_GROQ_API_KEY. Sign up for free at groq.com"
+    },
+    {
+      "parameters": {
+        "operation": "append",
+        "documentId": {
+          "__rl": true,
+          "value": "YOUR_SPREADSHEET_ID",
+          "mode": "id"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "gid=0",
+          "mode": "id",
+          "cachedResultName": "Sheet1"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "Date": "={{ $json.date }}",
+            "Merchant": "={{ $json.merchant }}",
+            "Category": "={{ $json.category }}",
+            "Item": "={{ $json.item }}",
+            "Amount (USD)": "={{ $json.amount_usd }}",
+            "Original Currency": "={{ $json.original_currency }}",
+            "Original Amount": "={{ $json.original_amount }}",
+            "Notes": "={{ $json.notes }}"
+          },
+          "matchingColumns": [],
+          "schema": [
+            {
+              "id": "Date",
+              "displayName": "Date",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Merchant",
+              "displayName": "Merchant",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Category",
+              "displayName": "Category",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Item",
+              "displayName": "Item",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Amount (USD)",
+              "displayName": "Amount (USD)",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Original Currency",
+              "displayName": "Original Currency",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Original Amount",
+              "displayName": "Original Amount",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Notes",
+              "displayName": "Notes",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Timestamp",
+              "displayName": "Timestamp",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "id": "0bff0386-7ba2-4b5d-8520-0c67b461d4e5",
+      "name": "Auto-Save to Spreadsheet",
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.4,
+      "position": [
+        1696,
+        64
+      ],
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "XHVoEvkw16nN8yjL",
+          "name": "Google Sheets account 479"
+        }
+      },
+      "notes": "Replace YOUR_SPREADSHEET_ID with your Google Sheets ID (from the URL). Create a sheet named 'Expenses' with these headers: Date | Merchant | Category | Item | Amount (USD) | Original Currency | Original Amount | Notes | Timestamp"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "=https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpQueryAuth",
+        "sendBody": true,
+        "contentType": "=json",
+        "specifyBody": "=json",
+        "bodyParameters": {
+          "parameters": [
+            {}
+          ]
+        },
+        "jsonBody": "={{ $json.gemini_body }}",
+        "options": {}
+      },
+      "id": "89b11125-7acf-40ce-b686-0a6cdfd71d4c",
+      "name": "AI Receipt Reader",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        1088,
+        208
+      ],
+      "credentials": {
+        "httpQueryAuth": {
+          "id": "mdsgtNN2iZXBE2l1",
+          "name": "Query Auth account 3"
+        }
+      },
+      "notes": "Credential: HTTP Query Auth — Name: key, Value: YOUR_GEMINI_API_KEY. Get one for free at aistudio.google.com"
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Telegram Trigger": {
+      "main": [
+        [
+          {
+            "node": "Input Type Router",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Download Audio": {
+      "main": [
+        [
+          {
+            "node": "Code in JavaScript",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code in JavaScript": {
+      "main": [
+        [
+          {
+            "node": "Voice-to-Text Engine",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Input Type Router": {
+      "main": [
+        [
+          {
+            "node": "Get File Path (Image)",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Get File Path (Document)",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Prepare Text Input",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Get File Path (Voice)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get File Path (Image)": {
+      "main": [
+        [
+          {
+            "node": "Build Image URL",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Build Image URL": {
+      "main": [
+        [
+          {
+            "node": "Merge All Inputs",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get File Path (Document)": {
+      "main": [
+        [
+          {
+            "node": "Build Document URL",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Build Document URL": {
+      "main": [
+        [
+          {
+            "node": "Merge All Inputs",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Prepare Text Input": {
+      "main": [
+        [
+          {
+            "node": "Merge All Inputs",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get File Path (Voice)": {
+      "main": [
+        [
+          {
+            "node": "Download Audio",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Prepare Transcribed Text": {
+      "main": [
+        [
+          {
+            "node": "Merge All Inputs",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Merge All Inputs": {
+      "main": [
+        [
+          {
+            "node": "Build Gemini Prompt",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Build Gemini Prompt": {
+      "main": [
+        [
+          {
+            "node": "AI Receipt Reader",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Parse AI Response": {
+      "main": [
+        [
+          {
+            "node": "Success?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Success?": {
+      "main": [
+        [
+          {
+            "node": "Auto-Save to Spreadsheet",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Telegram: Error Message",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Monthly Report Schedule": {
+      "main": [
+        [
+          {
+            "node": "Read Sheets Data",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Read Sheets Data": {
+      "main": [
+        [
+          {
+            "node": "Calculate Monthly Report",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Calculate Monthly Report": {
+      "main": [
+        [
+          {
+            "node": "Telegram: Send Report",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Voice-to-Text Engine": {
+      "main": [
+        [
+          {
+            "node": "Prepare Transcribed Text",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Auto-Save to Spreadsheet": {
+      "main": [
+        [
+          {
+            "node": "Telegram: Success Confirmation",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "AI Receipt Reader": {
+      "main": [
+        [
+          {
+            "node": "Parse AI Response",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate"
+  },
+  "versionId": "ac962811-7092-401b-8631-ba5d1708c320",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "d2e5c81f36b3fb44b914d2b713f588a1feeaf33a9a6f7f2354052708e50fa870"
+  },
+  "id": "0vTO18cGGf3ZLTAL",
+  "tags": [
+    {
+      "updatedAt": "2026-06-04T02:32:23.422Z",
+      "createdAt": "2026-06-04T02:32:23.422Z",
+      "id": "E8y0b7l55k6U6J8K",
+      "name": "finance"
+    },
+    {
+      "updatedAt": "2026-06-04T02:32:23.427Z",
+      "createdAt": "2026-06-04T02:32:23.427Z",
+      "id": "TYIfLeVlrk9VYiNF",
+      "name": "telegram"
+    }
+  ]
+}
