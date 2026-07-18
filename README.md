@@ -21,7 +21,7 @@
 
 </div>
 
-![Project cover](assets/project-cover.svg)
+![Project cover](project-cover.svg)
 
 > **Portfolio note:** This project uses a personal Telegram bot and a demonstration Google Sheet as its data layer. All tokens, spreadsheet identifiers, and personal identifiers from the original build have been removed and replaced with environment-variable placeholders before publication.
 
@@ -77,15 +77,15 @@ The workflow is built around a single Telegram bot that acts as the only interfa
 7. **Telegram confirmation / error messages** — the user receives an immediate confirmation (or a clear error) directly in the same chat.
 8. **Monthly Report Schedule** — a separate scheduled trigger reads the sheet on a recurring basis, calculates a monthly summary, and sends it back to the user via Telegram.
 
-This single-workflow design was chosen because the input channel (Telegram) and review channel (Telegram + Sheets) are the same for every input type — a modular multi-workflow split (like the [Hotel AI Concierge](../hotel-ai-concierge-automation) project) was not necessary here.
+This single-workflow design was chosen because the input channel (Telegram) and review channel (Telegram + Sheets) are the same for every input type — a modular multi-workflow split (like the [Hotel AI Concierge](https://github.com/syifaannisa/hotel-ai-concierge-automation) project) was not necessary here.
 
 ---
 
 ## Architecture
 
-![Architecture diagram](assets/architecture-diagram.svg)
+![Architecture diagram](architecture-diagram.svg)
 
-See [`docs/architecture.md`](docs/architecture.md) for the full node-by-node breakdown.
+See [`docs/architecture.md`](architecture.md) for the full node-by-node breakdown.
 
 ---
 
@@ -99,37 +99,37 @@ See [`docs/architecture.md`](docs/architecture.md) for the full node-by-node bre
 
 ## Local setup and configuration
 
-Full step-by-step instructions are in [`docs/setup-guide.md`](docs/setup-guide.md). At a high level:
+Full step-by-step instructions are in [`setup-guide.md`](setup-guide.md). At a high level:
 
 1. Import `workflows/personal-finance-tracker.json` into your own n8n instance.
 2. Create a Telegram bot via [@BotFather](https://t.me/BotFather) and set `TELEGRAM_BOT_TOKEN` as an environment variable on your n8n instance (see [`.env.example`](.env.example)).
 3. Re-bind the Telegram, Google Sheets, and HTTP Header/Query Auth credential nodes to your own n8n credentials — credential bindings are never included in an exported workflow.
-4. Create a Google Sheet using the schema in [`docs/google-sheets-schema.md`](docs/google-sheets-schema.md) and set its ID via `GOOGLE_SHEET_ID` / the Google Sheets node's document picker.
+4. Create a Google Sheet using the schema in [`google-sheets-schema.md`](google-sheets-schema.md) and set its ID via `GOOGLE_SHEET_ID` / the Google Sheets node's document picker.
 5. Create a free Groq API key for Whisper transcription and a Google AI Studio key for Gemini, and attach them as generic auth credentials on the relevant HTTP Request nodes.
 
 ---
 
 ## Configuration reference
 
-See [`docs/configuration-reference.md`](docs/configuration-reference.md) for every environment variable and credential the workflow expects.
+See [`configuration-reference.md`](configuration-reference.md) for every environment variable and credential the workflow expects.
 
 ---
 
 ## Data schema
 
-See [`docs/google-sheets-schema.md`](docs/google-sheets-schema.md) and [`sample-data/google-sheets-schema.csv`](sample-data/google-sheets-schema.csv) for the expected Google Sheets columns.
+See [`google-sheets-schema.md`](google-sheets-schema.md) and [`google-sheets-schema.csv`](google-sheets-schema.csv) for the expected Google Sheets columns.
 
 ---
 
 ## Security
 
-See [`SECURITY.md`](SECURITY.md) and [`docs/sanitisation-report.md`](docs/sanitisation-report.md) for what was removed from this workflow before publication, and what to check before you publish your own copy.
+See [`SECURITY.md`](SECURITY.md) and [`sanitisation-report.md`](dsanitisation-report.md) for what was removed from this workflow before publication, and what to check before you publish your own copy.
 
 ---
 
 ## Limitations and roadmap
 
-See [`docs/limitations-and-roadmap.md`](docs/limitations-and-roadmap.md).
+See [`limitations-and-roadmap.md`](limitations-and-roadmap.md).
 
 ---
 
