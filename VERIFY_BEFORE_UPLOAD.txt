@@ -1,0 +1,23 @@
+VERIFIED PACKAGE — PERSONAL FINANCE TRACKER (UPLOAD KIT)
+
+Batches confirmed:
+- 01-documentation-foundation (README, PROJECT_OVERVIEW, LICENSE, SECURITY, .env.example,
+  .gitignore, assets/, docs/setup-guide.md)
+- 02-workflow (workflows/personal-finance-tracker.json)
+- 03-technical-documentation (docs/, sample-data/)
+- 04-github-maintenance (.github/, CHANGELOG, CODE_OF_CONDUCT, CONTRIBUTING, FILE_MANIFEST)
+
+MAC FINDER:
+Press Command + Shift + . to display hidden files before uploading Batch 01 and Batch 04.
+
+Do not upload the batch-number folder itself — open each batch folder and upload
+its contents to the repository root.
+
+Sanitisation confirmed (see 03-technical-documentation/docs/sanitisation-report.md):
+- Telegram bot token removed from 4 HTTP Request nodes and 2 Code nodes.
+- Real Google Sheets ID removed from the Auto-Save to Spreadsheet node.
+- No emails, phone numbers, or real expense records found.
+
+Reminder: the original Telegram bot token found in the source file has been treated
+as compromised. If you have not already done so, regenerate it via @BotFather before
+reusing this bot for anything else.
