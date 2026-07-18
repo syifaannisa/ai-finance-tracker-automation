@@ -14,4 +14,4 @@ The workflow writes each parsed expense as one row with the following columns.
 | `Notes` | string | Any additional notes extracted or added |
 | `Timestamp` | string | Row insertion timestamp |
 
-See [`../sample-data/google-sheets-schema.csv`](../sample-data/google-sheets-schema.csv) for a machine-readable version of this schema with fictional example values.
+The table above defines the complete Google Sheets schema used by this workflow..
