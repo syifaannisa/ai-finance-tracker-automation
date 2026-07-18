@@ -16,7 +16,7 @@ All secrets should be stored in n8n credentials, environment variables, or an ap
 
 ## What was found and fixed before publishing
 
-The original workflow export contained a live Telegram bot token hardcoded in six places (four HTTP Request node URLs and two Code nodes), and a real personal Google Sheets ID hardcoded in the Google Sheets "append" node. Both were replaced with environment-variable references / placeholder values. See [`docs/sanitisation-report.md`](docs/sanitisation-report.md) for details.
+The original workflow export contained a live Telegram bot token hardcoded in six places (four HTTP Request node URLs and two Code nodes), and a real personal Google Sheets ID hardcoded in the Google Sheets "append" node. Both were replaced with environment-variable references / placeholder values. See [`sanitisation-report.md`](sanitisation-report.md) for details.
 
 **If you are reusing this project with your own bot token:** treat any token that has ever appeared in a shared file, screenshot, or chat history as compromised, and regenerate it via [@BotFather](https://t.me/BotFather) before use.
 
