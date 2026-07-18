@@ -123,7 +123,7 @@ See [`google-sheets-schema.md`](google-sheets-schema.md) and [`google-sheets-sch
 
 ## Security
 
-See [`SECURITY.md`](SECURITY.md) and [`sanitisation-report.md`](dsanitisation-report.md) for what was removed from this workflow before publication, and what to check before you publish your own copy.
+See [`SECURITY.md`](SECURITY.md) and [`sanitisation-report.md`](sanitisation-report.md) for what was removed from this workflow before publication, and what to check before you publish your own copy.
 
 ---
 
