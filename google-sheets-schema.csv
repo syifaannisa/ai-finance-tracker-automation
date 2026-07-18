@@ -1,0 +1,5 @@
+Date,Merchant,Category,Item,Amount (USD),Original Currency,Original Amount,Notes,Timestamp
+2026-01-05,Starbucks,Food & Beverage,Iced Latte,4.10,IDR,65000,Paid by e-wallet,2026-01-05T09:15:00Z
+2026-01-06,Grab,Transport,Ride to office,2.30,IDR,36000,-,2026-01-06T08:02:00Z
+2026-01-07,Unknown merchant,Others,Printer paper,3.50,USD,3.50,From forwarded PDF invoice,2026-01-07T14:40:00Z
+2026-01-08,Tokopedia,Shopping,Phone case,7.20,IDR,113000,Voice note entry,2026-01-08T19:05:00Z
