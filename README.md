@@ -17,7 +17,7 @@
 [Architecture](#architecture) ·
 [Workflow Overview](#workflow-overview) ·
 [Setup](#local-setup-and-configuration) ·
-[Roadmap](#roadmap)
+[Roadmap](#limitations-and-roadmap)
 
 </div>
 
